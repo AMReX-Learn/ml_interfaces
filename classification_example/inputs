@@ -1,0 +1,4 @@
+n_cell = 64
+max_grid_size = 64
+which_geom_predict = 1
+size_train = 256
