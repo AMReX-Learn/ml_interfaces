@@ -38,7 +38,7 @@ class MFDataset : public torch::data::Dataset<MFDataset>
                     }
                     torch::Tensor tensor = torch::from_blob(auxPtr, {max_grid_size,max_grid_size,3}).clone();
                     int64_t aux=0;
-                    if (i%2==0 ) aux=1;
+                    if (i%2==1) aux=1;
                     mfv_.push_back(std::make_tuple(tensor,aux));
                 }
             }
@@ -70,7 +70,7 @@ struct ConvNetImpl : public torch::nn::Module
           
           n(GetConvOutput(channels, height, width)),
           lin1(n, 32),
-          lin2(32, 2 /*number of output classes (apples and bananas)*/) {
+          lin2(32, 2 /*number of output classes (circles and squares)*/) {
 
         register_module("conv1", conv1);
         register_module("conv2", conv2);
@@ -229,19 +229,22 @@ int main (int argc, char* argv[])
             size_t batch_idx = 0;
             float mse = 0.; // mean squared error
             int count = 0;
-    
+            // Iterate the data loader to yield batches from the dataset.
             for (auto& batch : *data_loader) {
                 auto imgs = batch.data;
                 auto labels = batch.target.squeeze();
     
                 imgs = imgs.to(torch::kF32);
                 labels = labels.to(torch::kInt64);
-    
+                // Reset gradients.
                 optimizer.zero_grad();
+                // Execute the model on the input data.
                 auto output = model(imgs);
+                // Compute a loss value to judge the prediction of our model.
                 auto loss = torch::nll_loss(output, labels);
-    
+                // Compute gradients of the loss w.r.t. the parameters of our model.
                 loss.backward();
+                // Update the parameters based on the calculated gradients.
                 optimizer.step();
     
                 mse += loss.template item<float>();
@@ -340,8 +343,8 @@ int main (int argc, char* argv[])
         torch::Tensor prob = torch::exp(log_prob);
     
         printf("Probability of being\n\
-        a square = %.2f percent\n\
-        a circle = %.2f percent\n", prob[0][0].item<float>()*100., prob[0][1].item<float>()*100.); 
+        a circle = %.2f percent\n\
+        a square = %.2f percent\n", prob[0][0].item<float>()*100., prob[0][1].item<float>()*100.); 
 
 #if 0
         std::cout<<"NN example from PYTORCH!"<<std::endl;
