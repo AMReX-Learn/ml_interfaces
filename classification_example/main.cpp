@@ -51,7 +51,7 @@ class MFDataset : public torch::data::Dataset<MFDataset>
             int64_t label = std::get<1>(mfv_[index]);
             mf_tensor = mf_tensor.permute({2, 0, 1}); // convert to CxHxW
 
-            torch::Tensor label_tensor = torch::full({1}, label);
+            torch::Tensor label_tensor = torch::full({1}, label, torch::kInt64 );
             return {mf_tensor, label_tensor};
         };
 
